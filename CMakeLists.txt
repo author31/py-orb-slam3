@@ -1,143 +1,231 @@
-cmake_minimum_required(VERSION 2.8)
-project(ORB_SLAM3)
+cmake_minimum_required(VERSION 3.16)
 
-IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release)
-ENDIF()
+option(ORB_SLAM3_BUILD_EXAMPLES "Build ORB_SLAM3 example executables" ON)
+option(ORB_SLAM3_ENABLE_VIEWER "Build Pangolin viewer support" OFF)
+option(ORB_SLAM3_USE_NATIVE_ARCH "Enable -march=native on release-like builds" ON)
 
-MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
+set(ORB_SLAM3_VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "" FORCE)
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/EnableVcpkg.cmake")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
+project(ORB_SLAM3 VERSION 1.0 LANGUAGES C CXX)
 
-# Check C++11 or C++0x support
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if(COMPILER_SUPPORTS_CXX14)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-   add_definitions(-DCOMPILEDWITHC14)
-   message(STATUS "Using flag -std=c++14.")
-elseif(COMPILER_SUPPORTS_CXX11)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-   add_definitions(-DCOMPILEDWITHC11)
-   message(STATUS "Using flag -std=c++11.")
-else()
-   message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
 endif()
 
-LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
 
-find_package(OpenCV 4.0)
+set(ORB_SLAM3_OPENCV_COMPONENTS
+  core
+  features2d
+  imgproc
+  calib3d
+  highgui
+  imgcodecs
+  videoio
+  aruco
+)
+
+find_package(OpenCV 4 QUIET COMPONENTS ${ORB_SLAM3_OPENCV_COMPONENTS})
 if(NOT OpenCV_FOUND)
-  find_package(OpenCV 3.0)
-  if(NOT OpenCV_FOUND)
-    message(FATAL_ERROR "OpenCV > 3.0 not found.")
-  endif()
+  find_package(OpenCV 3.0 QUIET COMPONENTS ${ORB_SLAM3_OPENCV_COMPONENTS})
 endif()
-MESSAGE("OPENCV VERSION:")
-MESSAGE(${OpenCV_VERSION})
+if(NOT OpenCV_FOUND)
+  message(FATAL_ERROR "OpenCV >= 3.0 with the aruco module is required")
+endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
-find_package(Pangolin REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(Boost REQUIRED COMPONENTS serialization)
+find_package(Threads REQUIRED)
 
-include_directories(
-${PROJECT_SOURCE_DIR}
-${PROJECT_SOURCE_DIR}/include
-${PROJECT_SOURCE_DIR}/include/CameraModels
-${PROJECT_SOURCE_DIR}/Thirdparty/Sophus
-${EIGEN3_INCLUDE_DIR}
-${Pangolin_INCLUDE_DIRS}
+if(ORB_SLAM3_ENABLE_VIEWER)
+  find_package(Pangolin QUIET)
+  if(NOT Pangolin_FOUND)
+    message(
+      FATAL_ERROR
+      "ORB_SLAM3_ENABLE_VIEWER=ON requires a manual Pangolin installation. "
+      "Pangolin is no longer provided by this repo's vcpkg manifest. "
+      "Install Pangolin separately and make it discoverable via CMAKE_PREFIX_PATH or your system package paths."
+    )
+  endif()
+endif()
+
+if(ORB_SLAM3_USE_NATIVE_ARCH)
+  add_compile_options(
+    "$<$<CONFIG:Release>:-march=native>"
+    "$<$<CONFIG:RelWithDebInfo>:-march=native>"
+  )
+endif()
+
+add_compile_options(
+  "$<$<COMPILE_LANGUAGE:C>:-Wall>"
+  "$<$<COMPILE_LANGUAGE:CXX>:-Wall>"
 )
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(${PROJECT_NAME} SHARED
-src/System.cc
-src/Tracking.cc
-src/LocalMapping.cc
-src/LoopClosing.cc
-src/ORBextractor.cc
-src/ORBmatcher.cc
-src/FrameDrawer.cc
-src/Converter.cc
-src/MapPoint.cc
-src/KeyFrame.cc
-src/Atlas.cc
-src/Map.cc
-src/MapDrawer.cc
-src/Optimizer.cc
-src/Frame.cc
-src/KeyFrameDatabase.cc
-src/Sim3Solver.cc
-src/Viewer.cc
-src/ImuTypes.cc
-src/G2oTypes.cc
-src/CameraModels/Pinhole.cpp
-src/CameraModels/KannalaBrandt8.cpp
-src/OptimizableTypes.cpp
-src/MLPnPsolver.cpp
-src/GeometricTools.cc
-src/TwoViewReconstruction.cc
-src/Config.cc
-src/Settings.cc
-include/System.h
-include/Tracking.h
-include/LocalMapping.h
-include/LoopClosing.h
-include/ORBextractor.h
-include/ORBmatcher.h
-include/FrameDrawer.h
-include/Converter.h
-include/MapPoint.h
-include/KeyFrame.h
-include/Atlas.h
-include/Map.h
-include/MapDrawer.h
-include/Optimizer.h
-include/Frame.h
-include/KeyFrameDatabase.h
-include/Sim3Solver.h
-include/Viewer.h
-include/ImuTypes.h
-include/G2oTypes.h
-include/CameraModels/GeometricCamera.h
-include/CameraModels/Pinhole.h
-include/CameraModels/KannalaBrandt8.h
-include/OptimizableTypes.h
-include/MLPnPsolver.h
-include/GeometricTools.h
-include/TwoViewReconstruction.h
-include/SerializationUtils.h
-include/Config.h
-include/Settings.h)
-
+add_subdirectory(Thirdparty/DBoW2)
 add_subdirectory(Thirdparty/g2o)
 
-target_link_libraries(${PROJECT_NAME}
-${OpenCV_LIBS}
-${EIGEN3_LIBS}
-${Pangolin_LIBRARIES}
-${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
-${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
--lboost_serialization
--lcrypto
+set(ORB_SLAM3_PUBLIC_HEADERS
+  include/Atlas.h
+  include/Config.h
+  include/Converter.h
+  include/Frame.h
+  include/FrameDrawer.h
+  include/G2oTypes.h
+  include/GeometricTools.h
+  include/ImuTypes.h
+  include/KeyFrame.h
+  include/KeyFrameDatabase.h
+  include/LocalMapping.h
+  include/LoopClosing.h
+  include/MLPnPsolver.h
+  include/Map.h
+  include/MapDrawer.h
+  include/MapPoint.h
+  include/ORBextractor.h
+  include/ORBmatcher.h
+  include/ORBVocabulary.h
+  include/OptimizableTypes.h
+  include/Optimizer.h
+  include/SerializationUtils.h
+  include/Settings.h
+  include/Sim3Solver.h
+  include/System.h
+  include/Tracking.h
+  include/TwoViewReconstruction.h
+  include/Viewer.h
+  include/CameraModels/GeometricCamera.h
+  include/CameraModels/KannalaBrandt8.h
+  include/CameraModels/Pinhole.h
 )
 
-# Build examples
-#Monocular inertial examples
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Monocular-Inertial)
+set(ORB_SLAM3_SOURCES
+  src/Atlas.cc
+  src/Config.cc
+  src/Converter.cc
+  src/Frame.cc
+  src/FrameDrawer.cc
+  src/G2oTypes.cc
+  src/GeometricTools.cc
+  src/ImuTypes.cc
+  src/KeyFrame.cc
+  src/KeyFrameDatabase.cc
+  src/LocalMapping.cc
+  src/LoopClosing.cc
+  src/MLPnPsolver.cpp
+  src/Map.cc
+  src/MapDrawer.cc
+  src/MapPoint.cc
+  src/ORBextractor.cc
+  src/ORBmatcher.cc
+  src/OptimizableTypes.cpp
+  src/Optimizer.cc
+  src/Settings.cc
+  src/Sim3Solver.cc
+  src/System.cc
+  src/Tracking.cc
+  src/TwoViewReconstruction.cc
+  src/CameraModels/KannalaBrandt8.cpp
+  src/CameraModels/Pinhole.cpp
+)
 
-add_executable(mono_inertial_gopro_vi
-Examples/Monocular-Inertial/mono_inertial_gopro_vi.cc)
-target_link_libraries(mono_inertial_gopro_vi ${PROJECT_NAME})
+if(ORB_SLAM3_ENABLE_VIEWER)
+  list(APPEND ORB_SLAM3_SOURCES src/Viewer.cc)
+endif()
 
-add_executable(mono_inertial_gopro_localize
-Examples/Monocular-Inertial/mono_inertial_gopro_localize.cc)
-target_link_libraries(mono_inertial_gopro_localize ${PROJECT_NAME})
+add_library(ORB_SLAM3 SHARED ${ORB_SLAM3_PUBLIC_HEADERS} ${ORB_SLAM3_SOURCES})
+add_library(ORB_SLAM3::ORB_SLAM3 ALIAS ORB_SLAM3)
 
-add_executable(gopro_slam
-Examples/Monocular-Inertial/gopro_slam.cc)
-target_link_libraries(gopro_slam ${PROJECT_NAME})
+target_compile_definitions(ORB_SLAM3 PRIVATE COMPILEDWITHC14)
+if(ORB_SLAM3_ENABLE_VIEWER)
+  target_compile_definitions(ORB_SLAM3 PUBLIC ORB_SLAM3_ENABLE_VIEWER)
+endif()
+
+target_include_directories(
+  ORB_SLAM3
+  PUBLIC
+    "${PROJECT_SOURCE_DIR}"
+    "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/include/CameraModels"
+    "${PROJECT_SOURCE_DIR}/Thirdparty/Sophus"
+    ${OpenCV_INCLUDE_DIRS}
+)
+
+if(ORB_SLAM3_ENABLE_VIEWER)
+  target_include_directories(
+    ORB_SLAM3
+    PRIVATE
+    ${Pangolin_INCLUDE_DIRS}
+  )
+endif()
+
+target_link_libraries(
+  ORB_SLAM3
+  PUBLIC
+    Eigen3::Eigen
+  PRIVATE
+    DBoW2
+    g2o
+    ${OpenCV_LIBS}
+    Boost::serialization
+    OpenSSL::Crypto
+    Threads::Threads
+)
+
+if(ORB_SLAM3_ENABLE_VIEWER)
+  target_link_libraries(ORB_SLAM3 PRIVATE ${Pangolin_LIBRARIES})
+endif()
+
+set_target_properties(
+  ORB_SLAM3
+  PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib"
+    OUTPUT_NAME "ORB_SLAM3"
+)
+
+if(ORB_SLAM3_BUILD_EXAMPLES)
+  set(ORB_SLAM3_EXAMPLE_OUTPUT_DIR "${PROJECT_SOURCE_DIR}/Examples/Monocular-Inertial")
+
+  add_executable(
+    mono_inertial_gopro_vi
+    Examples/Monocular-Inertial/mono_inertial_gopro_vi.cc
+  )
+  set_target_properties(
+    mono_inertial_gopro_vi
+    PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${ORB_SLAM3_EXAMPLE_OUTPUT_DIR}"
+  )
+  target_link_libraries(mono_inertial_gopro_vi PRIVATE ORB_SLAM3::ORB_SLAM3)
+
+  add_executable(
+    mono_inertial_gopro_localize
+    Examples/Monocular-Inertial/mono_inertial_gopro_localize.cc
+  )
+  set_target_properties(
+    mono_inertial_gopro_localize
+    PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${ORB_SLAM3_EXAMPLE_OUTPUT_DIR}"
+  )
+  target_link_libraries(mono_inertial_gopro_localize PRIVATE ORB_SLAM3::ORB_SLAM3)
+
+  add_executable(
+    gopro_slam
+    Examples/Monocular-Inertial/gopro_slam.cc
+  )
+  set_target_properties(
+    gopro_slam
+    PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${ORB_SLAM3_EXAMPLE_OUTPUT_DIR}"
+  )
+  target_link_libraries(gopro_slam PRIVATE ORB_SLAM3::ORB_SLAM3)
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "OpenCV version: ${OpenCV_VERSION}")

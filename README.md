@@ -56,8 +56,8 @@ We have tested the library in **Ubuntu 16.04** and **18.04**, but it should be e
 ## C++14 or C++11 Compiler
 We use the new thread and chrono functionalities of C++11.
 
-## Pangolin
-We use [Pangolin](https://github.com/stevenlovegrove/Pangolin) for visualization and user interface. Dowload and install instructions can be found at: https://github.com/stevenlovegrove/Pangolin.
+## Pangolin (optional)
+We use [Pangolin](https://github.com/stevenlovegrove/Pangolin) only for optional viewer-enabled native builds. The default repo build and the Python package are headless and do not require Pangolin. If you configure with `-DORB_SLAM3_ENABLE_VIEWER=ON`, install Pangolin manually first; it is not provided by this repo's vcpkg manifest.
 
 ## OpenCV
 We use [OpenCV](http://opencv.org) to manipulate images and features. Dowload and install instructions can be found at: http://opencv.org. **Required at leat 3.0. Tested with OpenCV 3.2.0 and 4.4.0**.

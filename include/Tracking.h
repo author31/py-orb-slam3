@@ -60,7 +60,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Atlas* pAtlas,
              KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, Settings* settings,
-             const cv::Ptr<cv::aruco::Dictionary> aruco_dict,
+             const ArucoDictionary &aruco_dict,
              const int init_tag_id,
              const float init_tag_size);
 
@@ -247,7 +247,7 @@ protected:
     KeyFrameDatabase* mpKeyFrameDB;
 
     //Aruco
-    cv::Ptr<cv::aruco::Dictionary> maruco_dict;
+    ArucoDictionary maruco_dict;
     int minit_tag_id;
     float minit_tag_size;
 

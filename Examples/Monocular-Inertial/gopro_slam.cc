@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
   }
 
   // Create SLAM system. It initializes all system threads and gets ready to process frames.
-  cv::Ptr<cv::aruco::Dictionary> aruco_dict = cv::aruco::getPredefinedDictionary(aruco_dict_id);
+  auto aruco_dict = cv::aruco::getPredefinedDictionary(aruco_dict_id);
   ORB_SLAM3::System SLAM(
     vocabulary, setting, 
     ORB_SLAM3::System::IMU_MONOCULAR, 
@@ -286,5 +286,4 @@ int main(int argc, char **argv) {
 
   return 0;
 }
-
 

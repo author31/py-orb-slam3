@@ -19,12 +19,16 @@
 #include "MapDrawer.h"
 #include "MapPoint.h"
 #include "KeyFrame.h"
-#include <pangolin/pangolin.h>
 #include <mutex>
+
+#ifdef ORB_SLAM3_ENABLE_VIEWER
+#include <pangolin/pangolin.h>
+#endif
 
 namespace ORB_SLAM3
 {
 
+#ifdef ORB_SLAM3_ENABLE_VIEWER
 
 MapDrawer::MapDrawer(Atlas* pAtlas, const string &strSettingPath, Settings* settings):mpAtlas(pAtlas)
 {
@@ -464,4 +468,31 @@ void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M, pangolin
     MOw.m[13] = Twc(1,3);
     MOw.m[14] = Twc(2,3);
 }
+
+#else
+
+MapDrawer::MapDrawer(Atlas* pAtlas, const string &strSettingPath, Settings* settings): mpAtlas(pAtlas)
+{
+    (void)strSettingPath;
+    (void)settings;
+    mCameraPose = Sophus::SE3f();
+}
+
+void MapDrawer::newParameterLoader(Settings* settings)
+{
+    (void)settings;
+}
+
+void MapDrawer::SetCurrentCameraPose(const Sophus::SE3f &Tcw)
+{
+    unique_lock<mutex> lock(mMutexCamera);
+    mCameraPose = Tcw.inverse();
+}
+
+void MapDrawer::SetReferenceKeyFrame(KeyFrame *pKF)
+{
+    (void)pKF;
+}
+
+#endif
 } //namespace ORB_SLAM

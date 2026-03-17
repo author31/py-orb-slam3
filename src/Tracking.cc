@@ -42,7 +42,7 @@ namespace ORB_SLAM3
 
 
 Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Atlas *pAtlas, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, Settings* settings,
-    const cv::Ptr<cv::aruco::Dictionary> aruco_dict,
+    const ArucoDictionary &aruco_dict,
     const int init_tag_id,
     const float init_tag_size):
     mState(NO_IMAGES_YET), mSensor(sensor), mTrackedFr(0), mbStep(false),
@@ -3491,12 +3491,14 @@ void Tracking::Reset(bool bLocMap)
 {
     Verbose::PrintMess("System Reseting", Verbose::VERBOSITY_NORMAL);
 
+#ifdef ORB_SLAM3_ENABLE_VIEWER
     if(mpViewer)
     {
         mpViewer->RequestStop();
         while(!mpViewer->isStopped())
             usleep(3000);
     }
+#endif
 
     // Reset Local Mapping
     if (!bLocMap)
@@ -3542,8 +3544,10 @@ void Tracking::Reset(bool bLocMap)
     mpLastKeyFrame = static_cast<KeyFrame*>(NULL);
     mvIniMatches.clear();
 
+#ifdef ORB_SLAM3_ENABLE_VIEWER
     if(mpViewer)
         mpViewer->Release();
+#endif
 
     Verbose::PrintMess("   End reseting! ", Verbose::VERBOSITY_NORMAL);
 }
@@ -3551,12 +3555,14 @@ void Tracking::Reset(bool bLocMap)
 void Tracking::ResetActiveMap(bool bLocMap)
 {
     Verbose::PrintMess("Active map Reseting", Verbose::VERBOSITY_NORMAL);
+#ifdef ORB_SLAM3_ENABLE_VIEWER
     if(mpViewer)
     {
         mpViewer->RequestStop();
         while(!mpViewer->isStopped())
             usleep(3000);
     }
+#endif
 
     Map* pMap = mpAtlas->GetCurrentMap();
 
@@ -3633,8 +3639,10 @@ void Tracking::ResetActiveMap(bool bLocMap)
 
     mbVelocity = false;
 
+#ifdef ORB_SLAM3_ENABLE_VIEWER
     if(mpViewer)
         mpViewer->Release();
+#endif
 
     Verbose::PrintMess("   End reseting! ", Verbose::VERBOSITY_NORMAL);
 }

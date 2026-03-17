@@ -71,6 +71,7 @@ Thirdparty/g2o/lib/
 Thirdparty/Pangolin/build/
 Vocabulary/ORBvoc.txt
 build/
+.vcpkg/
 
 lib/
 

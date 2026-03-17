@@ -21,8 +21,8 @@
 #include "System.h"
 #include "Converter.h"
 #include <thread>
-#include <pangolin/pangolin.h>
 #include <iomanip>
+#include <stdexcept>
 #include <openssl/md5.h>
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/string.hpp>
@@ -42,7 +42,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
                const bool bUseViewer,
                const string &load_atlas_path,
                const string &save_atlas_path,
-               const cv::Ptr<cv::aruco::Dictionary> aruco_dict,
+               const ArucoDictionary &aruco_dict,
                const int init_tag_id,
                const float init_tag_size):
     mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
@@ -191,6 +191,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //usleep(10*1000*1000);
 
     //Initialize the Viewer thread and launch
+#ifdef ORB_SLAM3_ENABLE_VIEWER
     if(bUseViewer)
     //if(false) // TODO
     {
@@ -200,6 +201,12 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mpLoopCloser->mpViewer = mpViewer;
         mpViewer->both = mpFrameDrawer->both;
     }
+#else
+    if(bUseViewer)
+    {
+        throw std::runtime_error("Viewer support is disabled in this ORB_SLAM3 build");
+    }
+#endif
 
     // Fix verbosity
     Verbose::SetTh(Verbose::VERBOSITY_QUIET);
@@ -1700,4 +1707,3 @@ bool System::isLoadingMap(){
 }
 
 } //namespace ORB_SLAM
-

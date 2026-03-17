@@ -24,9 +24,12 @@
 #include"MapPoint.h"
 #include"KeyFrame.h"
 #include "Settings.h"
-#include<pangolin/pangolin.h>
 
 #include<mutex>
+
+#ifdef ORB_SLAM3_ENABLE_VIEWER
+#include <pangolin/pangolin.h>
+#endif
 
 namespace ORB_SLAM3
 {
@@ -43,15 +46,19 @@ public:
 
     Atlas* mpAtlas;
 
+#ifdef ORB_SLAM3_ENABLE_VIEWER
     void DrawMapPoints();
     void DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph, const bool bDrawInertialGraph, const bool bDrawOptLba);
     void DrawCurrentCamera(pangolin::OpenGlMatrix &Twc);
+    void GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M, pangolin::OpenGlMatrix &MOw);
+#endif
+
     void SetCurrentCameraPose(const Sophus::SE3f &Tcw);
     void SetReferenceKeyFrame(KeyFrame *pKF);
-    void GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M, pangolin::OpenGlMatrix &MOw);
 
 private:
 
+#ifdef ORB_SLAM3_ENABLE_VIEWER
     bool ParseViewerParamFile(cv::FileStorage &fSettings);
 
     float mKeyFrameSize;
@@ -60,6 +67,7 @@ private:
     float mPointSize;
     float mCameraSize;
     float mCameraLineWidth;
+#endif
 
     Sophus::SE3f mCameraPose;
 

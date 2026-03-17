@@ -103,10 +103,10 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
     System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, 
-        const bool bUseViewer = true, 
+        const bool bUseViewer = false,
         const string &load_atlas_path = std::string(),
         const string &save_atlas_path = std::string(),
-        const cv::Ptr<cv::aruco::Dictionary> aruco_dict=cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50),
+        const ArucoDictionary &aruco_dict=cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50),
         const int init_tag_id=13,
         const float init_tag_size=0.16
     );
