@@ -1,0 +1,39 @@
+[build-system]
+requires = [
+  "pybind11>=2.10",
+  "scikit-build-core>=0.3.3",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "py_orb_slam3"
+version = "0.1.0"
+description = "Headless Python bindings for ORB_SLAM3"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+dependencies = [
+  "numpy>=1.26",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.scikit-build]
+build-dir = "build/{wheel_tag}"
+wheel.packages = ["src/py_orb_slam3"]
+build.verbose = true
+logging.level = "DEBUG"
+cmake.args = [
+    "-DCMAKE_TOOLCHAIN_FILE=./vcpkg/scripts/buildsystems/vcpkg.cmake",
+    "-DVCPKG_INSTALLED_DIR=./vcpkg_installed",
+    "-DBUILD_PYTHON_EXTENSION=ON"
+]
+
+[tool.scikit-build.cmake.define]
+PY_ORB_SLAM3_WITH_PANGOLIN = "OFF"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

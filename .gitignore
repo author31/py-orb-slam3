@@ -1,0 +1,12 @@
+build/
+dist/
+_build/
+_generate/
+*.so
+*.py[cod]
+*.egg-info
+*env*
+
+pybind11/
+vcpkg/
+vcpkg_installed/
