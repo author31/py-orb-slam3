@@ -1,3 +1,6 @@
-[submodule "Thirdparty/Pangolin"]
-	path = Thirdparty/Pangolin
-	url = git@github.com:stevenlovegrove/Pangolin.git
+[submodule "ORB_SLAM3"]
+	path = ORB_SLAM3
+	url = https://github.com/cheng-chi/ORB_SLAM3.git
+[submodule "vcpkg"]
+	path = vcpkg
+	url = https://github.com/microsoft/vcpkg.git

@@ -1,21 +1,22 @@
 {
   "name": "py-orb-slam3",
   "version-string": "0.1.0",
+  "builtin-baseline": "fafcc0e93bfba303e5e48790def745d27e6d449b",
   "dependencies": [
     "boost-serialization",
     "eigen3",
-    "openssl",
     {
       "name": "opencv4",
       "default-features": false,
       "features": [
+        "calib3d",
         "contrib",
-        "highgui",
         "jpeg",
         "png",
-        "thread",
-        "tiff"
+        "tiff",
+        "webp"
       ]
-    }
+    },
+    "openssl"
   ]
 }
