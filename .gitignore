@@ -8,5 +8,4 @@ _generate/
 *env*
 
 pybind11/
-vcpkg/
 vcpkg_installed/
